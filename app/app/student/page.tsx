@@ -1,7 +1,7 @@
 import { createSupabaseServer } from "@/lib/supabaseServer";
 
 export default async function StudentHome() {
-  const supabase = createSupabaseServer();
+  const supabase = await createSupabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();

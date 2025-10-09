@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { createSupabaseServer } from "@/lib/supabaseServer";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
-  const supabase = createSupabaseServer();
+  const supabase = await createSupabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();
