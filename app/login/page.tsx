@@ -1,17 +1,39 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const initialEmail = searchParams.get("email") ?? "";
+  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setEmail(initialEmail);
+  }, [initialEmail]);
+
+  useEffect(() => {
+    if (searchParams.get("check-email") === "1") {
+      setMessage(
+        "Registrierung erfolgreich! Überprüfe dein Postfach und bestätige die Anmeldung, bevor du dich einloggst."
+      );
+    }
+
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, [searchParams]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -20,22 +42,19 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const trimmedEmail = email.trim();
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: trimmedEmail,
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
         password,
       });
 
-      if (signUpError) {
-        throw signUpError;
+      if (signInError) {
+        throw signInError;
       }
 
-      setMessage(
-        "Registrierung erfolgreich! Du wirst zur Anmeldung weitergeleitet."
-      );
-      setEmail("");
-      setPassword("");
-      router.push(`/login?email=${encodeURIComponent(trimmedEmail)}&check-email=1`);
+      setMessage("Login erfolgreich! Du wirst weitergeleitet …");
+      redirectTimerRef.current = setTimeout(() => {
+        router.push("/");
+      }, 1200);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unbekannter Fehler";
       setError(message);
@@ -49,9 +68,9 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 py-16 bg-gradient-to-br from-slate-100 to-slate-200">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-900/5">
-        <h1 className="text-2xl font-semibold text-slate-900">Registrieren</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Anmelden</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Erstelle ein neues Konto, indem du deine E-Mail-Adresse und ein Passwort eingibst.
+          Melde dich mit deiner E-Mail-Adresse und deinem Passwort an.
         </p>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -81,14 +100,13 @@ export default function RegisterPage() {
               id="password"
               name="password"
               type="password"
-              autoComplete="new-password"
+              autoComplete="current-password"
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Mindestens 6 Zeichen"
+              placeholder="Passwort eingeben"
               minLength={6}
             />
-            <p className="text-xs text-slate-500">Das Passwort muss mindestens 6 Zeichen lang sein.</p>
           </div>
 
           <button
@@ -96,7 +114,7 @@ export default function RegisterPage() {
             type="submit"
             disabled={isSubmitDisabled}
           >
-            {loading ? "Registriere..." : "Konto erstellen"}
+            {loading ? "Melde an ..." : "Einloggen"}
           </button>
         </form>
 
@@ -109,9 +127,9 @@ export default function RegisterPage() {
         ) : null}
 
         <p className="mt-8 text-sm text-slate-600">
-          Bereits registriert?{" "}
-          <Link className="font-semibold text-slate-900 hover:underline" href="/login">
-            Zur Anmeldung
+          Noch kein Konto?{" "}
+          <Link className="font-semibold text-slate-900 hover:underline" href="/register">
+            Zur Registrierung
           </Link>
         </p>
       </div>
