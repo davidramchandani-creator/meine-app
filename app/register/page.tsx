@@ -21,9 +21,16 @@ export default function RegisterPage() {
 
     try {
       const trimmedEmail = email.trim();
+      const loginRedirectUrl =
+        typeof window !== "undefined" ? `${window.location.origin}/login` : undefined;
       const { error: signUpError } = await supabase.auth.signUp({
         email: trimmedEmail,
         password,
+        options: loginRedirectUrl
+          ? {
+              emailRedirectTo: loginRedirectUrl,
+            }
+          : undefined,
       });
 
       if (signUpError) {
