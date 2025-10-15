@@ -1,0 +1,125 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.8rem 1rem 2.2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.metricGrid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.metricCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border-radius: 1.1rem;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-card-soft);
+}
+
+.metricLabel {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.metricValue {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.metricHint {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.quickActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0.9rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.primaryAction {
+  background: linear-gradient(135deg, #1c244b 0%, #2a3665 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 18px -8px rgba(28, 36, 75, 0.45);
+}
+
+.primaryAction:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -8px rgba(28, 36, 75, 0.45);
+}
+
+.secondaryAction {
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+}
+
+.secondaryAction:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+@media (min-width: 720px) {
+  .metricGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quickActions {
+    flex-direction: row;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    flex: 1;
+  }
+}

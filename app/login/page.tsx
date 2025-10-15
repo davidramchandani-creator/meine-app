@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createSupabaseBrowser } from "@/lib/supabaseBrowser";
+import styles from "./login.module.css";
 
 export default function LoginPage() {
   const supabase = createSupabaseBrowser();
@@ -40,23 +41,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto mt-24 max-w-sm rounded border p-6">
-      <h1 className="mb-4 text-xl font-semibold">Anmelden</h1>
+    <div className={styles.container}>
+      <h1 className={styles.title}>Anmelden</h1>
 
       {sent ? (
         <p>Magic-Link wurde gesendet. Bitte E-Mail prüfen.</p>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form onSubmit={onSubmit} className={styles.form}>
           <input
             type="email"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="deine@email.ch"
-            className="w-full rounded border p-2"
+            className={styles.input}
           />
-          <button className="w-full rounded bg-black py-2 text-white">Link senden</button>
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          <button className={styles.submit} type="submit">
+            Link senden
+          </button>
+          {error ? <p className={styles.error}>{error}</p> : null}
         </form>
       )}
     </div>

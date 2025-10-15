@@ -1,8 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core palette */
+  --background: #f3f5f9;
+  --foreground: #1c244b;
+  --color-primary: #1c244b;
+  --color-primary-dark: #121736;
+  --color-primary-soft: #e8ecf7;
+  --color-accent: #3a6edc;
+  --color-accent-soft: #e2ebff;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f7f8fc;
+
+  /* Text */
+  --color-text-primary: #1d2439;
+  --color-text-secondary: #485067;
+  --color-text-muted: #6c738a;
+
+  /* Borders */
+  --color-border: #d8dce6;
+  --color-border-strong: #c3c8d6;
+
+  /* States */
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-warning-soft: #fef3c7;
+
+  /* Shadows */
+  --shadow-card: 0 12px 24px -16px rgba(28, 36, 75, 0.25),
+    0 4px 12px -6px rgba(28, 36, 75, 0.18);
+  --shadow-card-soft: 0 8px 18px -12px rgba(28, 36, 75, 0.18),
+    0 2px 8px -4px rgba(28, 36, 75, 0.12);
+
+  /* Radii */
+  --radius-lg: 1.4rem;
+  --radius-md: 1rem;
+  --radius-sm: 0.75rem;
+
+  /* Typography */
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 @theme inline {
@@ -14,13 +52,27 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0f1324;
+    --foreground: #f9faff;
+    --color-surface: #151a2f;
+    --color-surface-subtle: #1d233b;
+    --color-accent: #7ea1ff;
+    --color-accent-soft: rgba(126, 161, 255, 0.24);
+    --color-border: rgba(134, 144, 176, 0.4);
+    --color-border-strong: rgba(134, 144, 176, 0.6);
+    --color-text-primary: #f9faff;
+    --color-text-secondary: #d1d6eb;
+    --color-text-muted: #9ca4c3;
+    --shadow-card: 0 18px 40px -18px rgba(3, 6, 20, 0.75),
+      0 8px 20px -12px rgba(3, 6, 20, 0.55);
+    --shadow-card-soft: 0 12px 28px -18px rgba(3, 6, 20, 0.65),
+      0 6px 16px -12px rgba(3, 6, 20, 0.48);
   }
 }
 
 body {
+  margin: 0;
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
 }

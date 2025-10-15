@@ -1,0 +1,151 @@
+.shell {
+  min-height: 100vh;
+  background: var(--background);
+  padding-bottom: 5.5rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.content {
+  flex: 1;
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  box-sizing: border-box;
+}
+
+.topNav {
+  display: none;
+  justify-content: center;
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.bottomNav {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  width: min(480px, calc(100% - 2rem));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card-soft);
+  z-index: 10;
+}
+
+.navLink {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.navLink:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.navLinkActive {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.badge {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.55rem;
+  background: var(--color-danger);
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 0 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.fab {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 5.25rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1c244b 0%, #2d3a6b 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow-card);
+  z-index: 15;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fab span {
+  display: none;
+}
+
+.fab::before {
+  content: "+";
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 30px -18px rgba(28, 36, 75, 0.35);
+}
+
+@media (min-width: 960px) {
+  .shell {
+    padding-bottom: 0;
+  }
+
+  .content {
+    padding: 2.5rem 0 3rem;
+  }
+
+  .topNav {
+    display: flex;
+  }
+
+  .bottomNav {
+    display: none;
+  }
+
+  .fab {
+    width: auto;
+    height: auto;
+    padding: 0.9rem 1.75rem;
+    border-radius: 999px;
+    bottom: 2.5rem;
+    right: 2.5rem;
+  }
+
+  .fab::before {
+    content: "Buchen";
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+  }
+
+  .fab span {
+    display: inline;
+  }
+}

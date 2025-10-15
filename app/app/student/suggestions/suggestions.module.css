@@ -1,0 +1,107 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.heading {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.error {
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+.empty {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card-soft);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.date {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.time {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.message {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.actionButton:hover {
+  transform: translateY(-1px);
+}
+
+.accept {
+  background: var(--color-success);
+}
+
+.accept:hover {
+  background: var(--color-success-strong);
+}
+
+.decline {
+  background: var(--color-danger);
+}
+
+.decline:hover {
+  background: var(--color-danger-strong);
+}
