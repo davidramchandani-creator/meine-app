@@ -13,9 +13,12 @@ export type AdminSettings = {
 
 export async function getAdminSettings(): Promise<AdminSettings | null> {
   const { data, error } = await supabaseService
-    .from<AdminSettings>("admin_settings")
-    .select("*")
+    .from("admin_settings")
+    .select(
+      "id, start_address, start_lat, start_lng, default_duration_min, buffer_min, cancel_window_hours, updated_at"
+    )
     .eq("id", 1)
+    .returns<AdminSettings>()
     .maybeSingle();
 
   if (error) {
