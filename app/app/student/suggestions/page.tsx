@@ -9,14 +9,16 @@ export default async function SuggestionsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  const userId = user?.id ?? null;
+
+  if (!userId) {
     return null;
   }
 
   const { data: suggestions, error } = await supabase
     .from("booking_requests")
     .select("id, proposed_starts_at, proposed_ends_at, message, kind, lesson_id")
-    .eq("student_id", user.id)
+    .eq("student_id", userId)
     .eq("direction", "admin_to_student")
     .eq("status", "pending")
     .order("proposed_starts_at", { ascending: true });
@@ -29,12 +31,12 @@ export default async function SuggestionsPage() {
 
   async function Accept(formData: FormData) {
     "use server";
-    await acceptSuggestion(String(formData.get("id")), user.id);
+    await acceptSuggestion(String(formData.get("id")), userId);
   }
 
   async function Decline(formData: FormData) {
     "use server";
-    await declineSuggestion(String(formData.get("id")), user.id);
+    await declineSuggestion(String(formData.get("id")), userId);
   }
 
   return (
@@ -113,7 +115,7 @@ export default async function SuggestionsPage() {
                   </div>
                   <CounterForm
                     requestId={suggestion.id}
-                    studentId={user.id}
+                    studentId={userId}
                   />
                 </div>
               </div>
