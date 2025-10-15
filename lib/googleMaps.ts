@@ -103,4 +103,4 @@ export function haversineKm(a: LatLng, b: LatLng): number {
   return R * c;
 }
 
-export { LatLng };
+export type { LatLng };
