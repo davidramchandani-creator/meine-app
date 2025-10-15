@@ -9,11 +9,11 @@ export default async function SuggestionsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const userId = user?.id ?? null;
-
-  if (!userId) {
+  if (!user) {
     return null;
   }
+
+  const userId = user.id;
 
   const { data: suggestions, error } = await supabase
     .from("booking_requests")
