@@ -37,10 +37,16 @@ export default async function AdminLayout({
       .eq("status", "pending"),
   ]);
 
+  const pendingRequestsCount = pendingRequests ?? 0;
+
   const navItems: AdminNavItem[] = [
     { href: "/app/admin", label: "Overview" },
     { href: "/app/admin/students", label: "Schüler" },
-    { href: "/app/admin/requests", label: "Anfragen", badge: pendingRequests },
+    {
+      href: "/app/admin/requests",
+      label: "Anfragen",
+      badge: pendingRequestsCount > 0 ? pendingRequestsCount : undefined,
+    },
     { href: "/app/admin/calendar", label: "Kalender" },
     { href: "/app/admin/payments", label: "Zahlungen" },
   ];
