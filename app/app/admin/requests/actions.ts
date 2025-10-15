@@ -80,9 +80,9 @@ export async function createAdminSuggestion(
   return { ok: true };
 }
 
-export async function acceptStudentRequest(requestId: string) {
+export async function acceptStudentRequest(requestId: string): Promise<void> {
   try {
-    const result = await acceptRequest({
+    await acceptRequest({
       requestId,
       expectedDirection: "student_to_admin",
     });
@@ -93,7 +93,7 @@ export async function acceptStudentRequest(requestId: string) {
     revalidatePath("/app/student/lessons");
     revalidatePath("/app/student/suggestions");
     revalidatePath("/app/admin/students");
-    return { ok: true, lessonId: result.lessonId };
+    return;
   } catch (error) {
     if (error instanceof BookingError) {
       throw new Error(error.message);
@@ -102,14 +102,14 @@ export async function acceptStudentRequest(requestId: string) {
   }
 }
 
-export async function declineStudentRequest(requestId: string) {
+export async function declineStudentRequest(requestId: string): Promise<void> {
   try {
     await declineRequest({
       requestId,
       expectedDirection: "student_to_admin",
     });
     revalidatePath("/app/admin/requests");
-    return { ok: true };
+    return;
   } catch (error) {
     if (error instanceof BookingError) {
       throw new Error(error.message);
