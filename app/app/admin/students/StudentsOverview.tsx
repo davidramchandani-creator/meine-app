@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import sharedStyles from "../admin-shared.module.css";
 import styles from "./admin-students.module.css";
 import type { StudentOverviewCard } from "./page";
 
@@ -36,7 +37,7 @@ export function StudentsOverview({ students }: { students: StudentOverviewCard[]
   }, [students, query, filter]);
 
   return (
-    <div className={styles.wrapper}>
+    <div className={sharedStyles.page}>
       <header className={styles.header}>
         <div className={styles.titleBar}>
           <h1 className={styles.title}>Schülerübersicht</h1>

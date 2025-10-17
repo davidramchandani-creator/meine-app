@@ -11,6 +11,12 @@ type PackageView = {
   next_lesson_at: string | null;
 };
 
+type ProfileView = {
+  lat: number | null;
+  lng: number | null;
+  first_name: string | null;
+};
+
 const PACKAGE_BASE_PRICES: Record<string, number> = {
   "05c6afa6-8a00-4cb9-ba6e-68a59f37a0cc": 60,
   "4ab83713-13e4-4c7c-b403-42d2110fd73e": 55,
@@ -83,7 +89,7 @@ export default async function StudentHome() {
       .limit(1),
     supabase
       .from("profiles")
-      .select("lat, lng")
+      .select("lat, lng, first_name")
       .eq("id", user.id)
       .maybeSingle(),
   ]);
@@ -99,6 +105,7 @@ export default async function StudentHome() {
     : null;
 
   const pkgDetail = (detail?.[0] as ActivePackageDetail | undefined) ?? null;
+  const profileData = (profile as ProfileView | null) ?? null;
   const travelFee = pkgDetail?.travel_fee_per_lesson_chf ?? 0;
   const basePriceFromDb =
     pkgDetail?.packages?.base_price_chf ??
@@ -145,12 +152,12 @@ export default async function StudentHome() {
   if (
     adminSettings?.start_lat != null &&
     adminSettings.start_lng != null &&
-    profile?.lat != null &&
-    profile.lng != null
+    profileData?.lat != null &&
+    profileData.lng != null
   ) {
     estimatedDistance = await getDrivingDistanceKm(
       { lat: Number(adminSettings.start_lat), lng: Number(adminSettings.start_lng) },
-      { lat: Number(profile.lat), lng: Number(profile.lng) }
+      { lat: Number(profileData.lat), lng: Number(profileData.lng) }
     );
     estimatedTravelFee = computeTravelFeeChf(estimatedDistance);
   }
@@ -161,19 +168,41 @@ export default async function StudentHome() {
       estimatedTravelFee != null
         ? pkg.basePrice + estimatedTravelFee
         : pkg.basePrice;
+    const totalPriceWithTravel = perLessonWithTravel * pkg.lessons;
 
     return {
       id: pkg.id,
       title: pkg.title,
-      description: `${pkg.lessons} Lektionen · CHF ${totalPrice.toFixed(0)} total`,
+      description:
+        estimatedTravelFee != null
+          ? `${pkg.lessons} Lektionen · CHF ${totalPriceWithTravel.toFixed(
+              0
+            )} total (inkl. Weg)`
+          : `${pkg.lessons} Lektionen · CHF ${totalPrice.toFixed(0)} total`,
       priceLabel: `CHF ${perLessonWithTravel.toFixed(2)}`,
     };
   });
 
+  const rawName =
+    profileData?.first_name?.trim() ||
+    (typeof user.user_metadata?.first_name === "string"
+      ? user.user_metadata.first_name.trim()
+      : "") ||
+    (typeof user.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name.trim()
+      : "");
+  const greetingName =
+    rawName && rawName.length > 0
+      ? rawName
+      : user.email?.split("@")[0] ?? "Schüler";
+
   return (
     <div className={styles.container}>
-      <div className={styles.packageCard}>
-        <div className={styles.packageDetails}>
+      <header className={styles.greeting}>
+        <h1 className={styles.greetingTitle}>Hallo {greetingName}</h1>
+      </header>
+      <div className={styles.infoGrid}>
+        <section className={`${styles.infoCard} ${styles.packageOverview}`}>
           <div className={styles.packageHeader}>
             <span className={styles.packageIcon} aria-hidden />
             <div className={styles.packageHeading}>
@@ -200,26 +229,19 @@ export default async function StudentHome() {
                 </span>
               </div>
 
-              {nextLessonDate ? (
-                <p className={styles.nextLesson}>
-                  Nächste Lektion:{" "}
-                  {nextLessonDate.toLocaleString("de-CH", {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "long",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              ) : (
-                <p className={styles.mutedText}>Keine kommende Lektion geplant.</p>
-              )}
-
-              <div className={styles.progressTrack}>
-                <div
-                  className={styles.progressValue}
-                  style={{ width: `${progress}%` }}
-                />
+              <div className={styles.progressBlock}>
+                <div className={styles.progressLabel}>
+                  <span>Fortschritt</span>
+                  <span className={styles.progressValueText}>
+                    {used} von {total}
+                  </span>
+                </div>
+                <div className={styles.progressTrack}>
+                  <div
+                    className={styles.progressValue}
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
               </div>
 
               <div className={styles.statsGrid}>
@@ -242,43 +264,76 @@ export default async function StudentHome() {
                   ))}
                 </div>
               ) : null}
-
-              <div className={styles.actionButtons}>
-                <Link className={styles.bookButton} href="/app/student/request">
-                  Nächste Lektion buchen
-                </Link>
-                <Link
-                  className={styles.secondaryButton}
-                  href="/app/student/suggestions"
-                >
-                  Vorschläge ansehen
-                </Link>
-                <Link className={styles.secondaryButton} href="/app/student/profile">
-                  Zahlungen & Profil
-                </Link>
-              </div>
             </>
           ) : (
             <p className={styles.emptyState}>
               Du hast kein aktives Paket. Wähle ein Paket, um loszulegen.
             </p>
           )}
-        </div>
+        </section>
 
-        <div className={styles.purchaseColumn}>
-          {!canBuyNew ? (
-            <div className={styles.callout}>
-              <p className={styles.calloutTitle}>Paket noch aktiv</p>
-              <p className={styles.calloutText}>
-                Du hast noch {left} Lektion(en). Neue Pakete können gebucht
-                werden, wenn alle Lektionen verbraucht sind.
+        <section className={styles.infoCard}>
+          <h3 className={styles.cardTitle}>Nächste Schritte</h3>
+          {total ? (
+            nextLessonDate ? (
+              <p className={styles.nextLesson}>
+                Nächste Lektion:{" "}
+                {nextLessonDate.toLocaleString("de-CH", {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "long",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </p>
-            </div>
-          ) : null}
+            ) : (
+              <p className={styles.mutedText}>Keine kommende Lektion geplant.</p>
+            )
+          ) : (
+            <p className={styles.mutedText}>
+              Buche eine Lektion, sobald dein Paket aktiv ist.
+            </p>
+          )}
 
-          <PackagePurchase options={packageOptions} disabled={!canBuyNew} />
-        </div>
+          <div className={styles.actionButtons}>
+            <Link className={styles.bookButton} href="/app/student/request">
+              Nächste Lektion buchen
+            </Link>
+            <Link
+              className={styles.secondaryButton}
+              href="/app/student/suggestions"
+            >
+              Vorschläge ansehen
+            </Link>
+            <Link className={styles.secondaryButton} href="/app/student/profile">
+              Zahlungen &amp; Profil
+            </Link>
+          </div>
+        </section>
       </div>
+
+      <section className={`${styles.infoCard} ${styles.purchaseCard}`}>
+        <div className={styles.purchaseHeader}>
+          <h3 className={styles.cardTitle}>Neues Paket</h3>
+          <p className={styles.purchaseSubline}>
+            {canBuyNew
+              ? "Triff deine Wahl für das nächste Paket."
+              : "Neue Pakete sind verfügbar, sobald alle Lektionen verbraucht sind."}
+          </p>
+        </div>
+
+        {!canBuyNew ? (
+          <div className={styles.callout}>
+            <p className={styles.calloutTitle}>Paket noch aktiv</p>
+            <p className={styles.calloutText}>
+              Du hast noch {left} Lektion(en). Neue Pakete können gebucht
+              werden, wenn alle Lektionen verbraucht sind.
+            </p>
+          </div>
+        ) : null}
+
+        <PackagePurchase options={packageOptions} disabled={!canBuyNew} />
+      </section>
     </div>
   );
 }

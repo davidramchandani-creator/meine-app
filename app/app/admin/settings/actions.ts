@@ -3,6 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { upsertAdminSettings, getAdminSettings } from "@/lib/adminSettings";
 import { geocodeAddress } from "@/lib/googleMaps";
+import {
+  WeeklyAvailability,
+  WEEKDAY_ORDER,
+  isValidTimeString,
+  timeStringToMinutes,
+  WEEKDAY_LABELS_DE,
+} from "@/lib/availability";
+import { DEFAULT_LESSON_BUFFER_MINUTES } from "@/lib/booking";
 
 export type SettingsFormState = {
   ok: boolean;
@@ -23,8 +31,20 @@ export async function saveAdminSettings(
 
     const startAddress = String(formData.get("startAddress") ?? "").trim();
     const duration = Number(formData.get("defaultDuration") ?? 45);
-    const buffer = Number(formData.get("bufferMinutes") ?? 5);
+    const buffer = Number(
+      formData.get("bufferMinutes") ?? DEFAULT_LESSON_BUFFER_MINUTES
+    );
     const cancelHours = Number(formData.get("cancelWindow") ?? 24);
+    let weeklyAvailability: WeeklyAvailability;
+    try {
+      weeklyAvailability = buildWeeklyAvailability(formData);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Verfügbarkeiten konnten nicht verarbeitet werden.";
+      return { ok: false, error: message };
+    }
 
     if (!startAddress) {
       return { ok: false, error: "Startadresse darf nicht leer sein." };
@@ -58,6 +78,7 @@ export async function saveAdminSettings(
       default_duration_min: Math.round(duration),
       buffer_min: Math.round(buffer),
       cancel_window_hours: Math.round(cancelHours),
+      weekly_availability: weeklyAvailability,
     });
 
     revalidatePath("/app/admin/settings");
@@ -78,10 +99,68 @@ export async function loadAdminSettingsForForm() {
   return {
     startAddress: settings?.start_address ?? "",
     defaultDuration: settings?.default_duration_min ?? 45,
-    bufferMinutes: settings?.buffer_min ?? 5,
+    bufferMinutes: settings?.buffer_min ?? DEFAULT_LESSON_BUFFER_MINUTES,
     cancelWindow: settings?.cancel_window_hours ?? 24,
     startLat: settings?.start_lat ?? null,
     startLng: settings?.start_lng ?? null,
     updatedAt: settings?.updated_at ?? null,
+    weeklyAvailability: normaliseFormAvailability(settings?.weekly_availability ?? null),
   };
+}
+
+function buildWeeklyAvailability(formData: FormData): WeeklyAvailability {
+  const availability: WeeklyAvailability = {};
+
+  for (const day of WEEKDAY_ORDER) {
+    const enabled = formData.get(`availability.${day}.enabled`) === "on";
+    if (!enabled) {
+      continue;
+    }
+
+    const start = String(formData.get(`availability.${day}.start`) ?? "").trim();
+    const end = String(formData.get(`availability.${day}.end`) ?? "").trim();
+
+    if (!start || !end) {
+      throw new Error(`Bitte Start- und Endzeit für ${WEEKDAY_LABELS_DE[day]} ausfüllen.`);
+    }
+
+    if (!isValidTimeString(start) || !isValidTimeString(end)) {
+      throw new Error(`Ungültige Zeitfelder für ${WEEKDAY_LABELS_DE[day]}.`);
+    }
+
+    const startMinutes = timeStringToMinutes(start);
+    const endMinutes = timeStringToMinutes(end);
+    if (
+      startMinutes == null ||
+      endMinutes == null ||
+      startMinutes >= endMinutes
+    ) {
+      throw new Error(
+        `Endzeit muss nach der Startzeit liegen (${WEEKDAY_LABELS_DE[day]}).`
+      );
+    }
+
+    availability[day] = [{ start, end }];
+  }
+
+  return availability;
+}
+
+type FormAvailability = Record<
+  (typeof WEEKDAY_ORDER)[number],
+  { enabled: boolean; start: string; end: string }
+>;
+
+function normaliseFormAvailability(
+  weeklyAvailability: WeeklyAvailability | null
+): FormAvailability {
+  return WEEKDAY_ORDER.reduce<FormAvailability>((acc, day) => {
+    const entry = weeklyAvailability?.[day]?.[0];
+    acc[day] = {
+      enabled: Boolean(entry),
+      start: entry?.start ?? "09:00",
+      end: entry?.end ?? "17:00",
+    };
+    return acc;
+  }, {} as FormAvailability);
 }

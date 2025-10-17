@@ -4,11 +4,11 @@
   /* Core palette */
   --background: #f3f5f9;
   --foreground: #1c244b;
-  --color-primary: #1c244b;
-  --color-primary-dark: #121736;
-  --color-primary-soft: #e8ecf7;
-  --color-accent: #3a6edc;
-  --color-accent-soft: #e2ebff;
+  --color-primary: #1e40af;
+  --color-primary-dark: #162b73;
+  --color-primary-soft: #dbe2ff;
+  --color-accent: #1e40af;
+  --color-accent-soft: rgba(30, 64, 175, 0.1);
   --color-surface: #ffffff;
   --color-surface-subtle: #f7f8fc;
 
@@ -56,8 +56,8 @@
     --foreground: #f9faff;
     --color-surface: #151a2f;
     --color-surface-subtle: #1d233b;
-    --color-accent: #7ea1ff;
-    --color-accent-soft: rgba(126, 161, 255, 0.24);
+    --color-accent: #6485ff;
+    --color-accent-soft: rgba(100, 133, 255, 0.24);
     --color-border: rgba(134, 144, 176, 0.4);
     --color-border-strong: rgba(134, 144, 176, 0.6);
     --color-text-primary: #f9faff;

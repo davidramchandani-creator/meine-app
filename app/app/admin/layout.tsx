@@ -52,7 +52,7 @@ export default async function AdminLayout({
   ];
 
   return (
-    <div className={styles.shell}>
+    <>
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <div className={styles.titleRow}>
@@ -65,7 +65,7 @@ export default async function AdminLayout({
         </div>
       </header>
 
-      <main className={styles.content}>{children}</main>
-    </div>
+      {children}
+    </>
   );
 }

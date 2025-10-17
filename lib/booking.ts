@@ -1,11 +1,12 @@
 import { supabaseService } from "./supabaseService";
+import { getAdminSettings } from "./adminSettings";
 
 type BookingDirection = "student_to_admin" | "admin_to_student";
 type BookingStatus = "pending" | "accepted" | "declined" | "expired";
 type BookingKind = "booking" | "reschedule";
 
 export const DEFAULT_LESSON_DURATION_MINUTES = 45;
-export const DEFAULT_LESSON_BUFFER_MINUTES = 5;
+export const DEFAULT_LESSON_BUFFER_MINUTES = 30;
 export const MIN_LEAD_TIME_HOURS = 6;
 
 type BookingRequestRow = {
@@ -80,16 +81,42 @@ export async function ensureNoStudentCollision(options: {
   startsAtIso: string;
   endsAtIso: string;
   ignoreLessonId?: string;
+  bufferMinutes?: number | null;
 }) {
   const { studentId, startsAtIso, endsAtIso, ignoreLessonId } = options;
+
+  let effectiveBuffer = options.bufferMinutes;
+  if (effectiveBuffer == null) {
+    const settings = await getAdminSettings();
+    if (settings?.buffer_min != null) {
+      effectiveBuffer = settings.buffer_min;
+    } else {
+      effectiveBuffer = DEFAULT_LESSON_BUFFER_MINUTES;
+    }
+  }
+
+  const bufferMs = Math.max(0, effectiveBuffer) * 60 * 1000;
+  const startDate = new Date(startsAtIso);
+  const endDate = new Date(endsAtIso);
+
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    throw new BookingError("Ungültiger Zeitraum.");
+  }
+
+  const windowStartIso = bufferMs
+    ? new Date(startDate.getTime() - bufferMs).toISOString()
+    : startDate.toISOString();
+  const windowEndIso = bufferMs
+    ? new Date(endDate.getTime() + bufferMs).toISOString()
+    : endDate.toISOString();
 
   const query = supabaseService
     .from("lessons")
     .select("id, starts_at, ends_at")
     .eq("student_id", studentId)
     .neq("status", "cancelled")
-    .lte("starts_at", endsAtIso)
-    .gte("ends_at", startsAtIso)
+    .lte("starts_at", windowEndIso)
+    .gte("ends_at", windowStartIso)
     .order("starts_at", { ascending: true })
     .limit(1);
 
@@ -117,7 +144,9 @@ export async function ensureNoStudentCollision(options: {
       hour: "2-digit",
       minute: "2-digit",
     })}`;
-    throw new BookingError(`Zeitfenster kollidiert mit ${formatted}.`);
+    const bufferSuffix =
+      (effectiveBuffer ?? 0) > 0 ? ` (inkl. ${effectiveBuffer} Min Puffer)` : "";
+    throw new BookingError(`Zeitfenster kollidiert${bufferSuffix} mit ${formatted}.`);
   }
 }
 

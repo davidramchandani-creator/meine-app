@@ -1,0 +1,320 @@
+.calendarCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 3rem;
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.monthLabel {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+  text-transform: capitalize;
+}
+
+.navButton {
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  background: var(--color-surface);
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.navButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -18px color-mix(in srgb, var(--foreground) 45%, transparent);
+}
+
+.weekdayRow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.weekday {
+  text-align: center;
+  font-weight: 600;
+}
+
+.calendarGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.dayCell {
+  min-height: 5.2rem;
+  border-radius: 1rem;
+  padding: 0.55rem 0.6rem;
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+.dayCell:hover {
+  transform: translateY(-2px);
+}
+
+.dayClickable {
+  cursor: pointer;
+}
+
+.dayOutside {
+  opacity: 0.5;
+}
+
+.dayToday {
+  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 55%, transparent);
+}
+
+.dayHasLesson {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface) 88%);
+}
+
+.dayNumber {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.lessonMarkers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.lessonMarker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: #1e40af;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lessonMarker:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px -12px rgba(30, 64, 175, 0.45);
+}
+
+.lessonMarker:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 90%, #ffffff 10%);
+  outline-offset: 2px;
+}
+
+.lessonMore {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.lessonList {
+  display: grid;
+  gap: 0.65rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.lessonEntry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lessonEntry:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 32px -24px rgba(30, 64, 175, 0.35);
+}
+
+.lessonEntry:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 80%, #ffffff 20%);
+  outline-offset: 3px;
+}
+
+.lessonEntryTime {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.lessonEntryMeta {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.lessonEmpty {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--background) 15%, #050712 85%);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  z-index: 100;
+}
+
+.modal {
+  width: min(36rem, 100%);
+  background: var(--color-surface);
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  box-shadow: var(--shadow-card);
+  padding: 2rem 2.25rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.modalClose {
+  position: absolute;
+  top: 1rem;
+  right: 1.1rem;
+  border: none;
+  background: color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.modalClose:hover {
+  transform: scale(1.05);
+  background: color-mix(in srgb, var(--color-text-primary) 18%, transparent);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.2rem;
+}
+
+.modalHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.modalTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.modalSubtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .calendarCard {
+    box-shadow: var(--shadow-card);
+  }
+
+  .dayCell {
+    background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  }
+
+  .lessonMarker {
+    background: #1e3a8a;
+    box-shadow: none;
+  }
+
+  .lessonEntry {
+    background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+    box-shadow: none;
+  }
+
+  .lessonEntry:hover {
+    box-shadow: 0 18px 32px -18px color-mix(in srgb, var(--color-accent) 45%, transparent);
+  }
+
+  .modalOverlay {
+    background: color-mix(in srgb, #020617 88%, transparent);
+  }
+
+  .modal {
+    background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  }
+
+  .modalClose {
+    background: color-mix(in srgb, var(--color-text-primary) 12%, transparent);
+  }
+}
+
+@media (max-width: 720px) {
+  .dayCell {
+    min-height: 4.5rem;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .lessonMarkers {
+    gap: 0.2rem;
+  }
+
+  .modal {
+    padding: 1.6rem 1.4rem;
+  }
+}

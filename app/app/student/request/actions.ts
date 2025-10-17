@@ -2,12 +2,21 @@
 
 import {
   BookingError,
+  DEFAULT_LESSON_DURATION_MINUTES,
+  DEFAULT_LESSON_BUFFER_MINUTES,
   ensureNoStudentCollision,
   normaliseBookingWindow,
 } from "@/lib/booking";
 import { createSupabaseServer } from "@/lib/supabaseServer";
 import { supabaseService } from "@/lib/supabaseService";
 import { revalidatePath } from "next/cache";
+import { getAdminSettings } from "@/lib/adminSettings";
+import {
+  DEFAULT_WEEKLY_AVAILABILITY,
+  isSlotWithinAvailability,
+} from "@/lib/availability";
+
+const SLOT_INTERVAL_MINUTES = 15;
 
 export type RequestFormState = {
   ok: boolean;
@@ -29,22 +38,47 @@ export async function submitStudentRequest(
     }
 
     const startRaw = String(formData.get("start") ?? "");
-    const endRaw = formData.get("end");
     const message = String(formData.get("message") ?? "").slice(0, 500);
 
     if (!startRaw) {
       throw new BookingError("Bitte wähle einen Startzeitpunkt.");
     }
 
+    const startDate = new Date(startRaw);
+    if (Number.isNaN(startDate.getTime())) {
+      throw new BookingError("Ungültiger Startzeitpunkt.");
+    }
+
+    if (
+      startDate.getMinutes() % SLOT_INTERVAL_MINUTES !== 0 ||
+      startDate.getSeconds() !== 0 ||
+      startDate.getMilliseconds() !== 0
+    ) {
+      throw new BookingError("Startzeiten sind nur in 15-Minuten-Schritten möglich.");
+    }
+
+    const endDate = new Date(startDate);
+    endDate.setMinutes(endDate.getMinutes() + DEFAULT_LESSON_DURATION_MINUTES);
+
+    const adminSettings = await getAdminSettings();
+    const availability = adminSettings?.weekly_availability ?? DEFAULT_WEEKLY_AVAILABILITY;
+    const bufferMinutes =
+      adminSettings?.buffer_min ?? DEFAULT_LESSON_BUFFER_MINUTES;
+
+    if (!isSlotWithinAvailability(startDate, endDate, availability)) {
+      throw new BookingError("Die gewählte Zeit liegt außerhalb der verfügbaren Slots.");
+    }
+
     const { startIso, endIso } = normaliseBookingWindow(
       startRaw,
-      (endRaw ?? undefined) as string | undefined
+      undefined
     );
 
     await ensureNoStudentCollision({
       studentId: user.id,
       startsAtIso: startIso,
       endsAtIso: endIso,
+      bufferMinutes,
     });
 
     const { error } = await supabaseService.from("booking_requests").insert({

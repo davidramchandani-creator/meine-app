@@ -5,14 +5,27 @@ import {
   BookingError,
   ensureNoStudentCollision,
   refundStudentPackageCredit,
+  DEFAULT_LESSON_BUFFER_MINUTES,
 } from "@/lib/booking";
 import { supabaseService } from "@/lib/supabaseService";
+import { createSupabaseServer } from "@/lib/supabaseServer";
+import { getAdminSettings } from "@/lib/adminSettings";
 
-export async function cancelLessonAsAdmin(
-  lessonId: string,
-  reason: string
-) {
+const DEFAULT_ADMIN_CANCEL_REASON = "Storniert durch Admin";
+
+export async function cancelLessonAsAdmin(lessonId: string, reason: string) {
   const trimmedReason = reason.trim();
+  const normalizedReason =
+    trimmedReason.length > 0 ? trimmedReason : DEFAULT_ADMIN_CANCEL_REASON;
+
+  const supabase = await createSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new BookingError("Bitte erneut anmelden.");
+  }
 
   const { data: lesson, error } = await supabaseService
     .from("lessons")
@@ -24,18 +37,25 @@ export async function cancelLessonAsAdmin(
     throw new BookingError("Lesson nicht gefunden.");
   }
 
+  if (lesson.status === "cancelled") {
+    throw new BookingError("Lesson wurde bereits storniert.");
+  }
+
   const { error: updateError } = await supabaseService
     .from("lessons")
     .update({
       status: "cancelled",
-      cancellation_reason: trimmedReason ? trimmedReason.slice(0, 500) : null,
+      cancellation_reason: normalizedReason.slice(0, 500),
       cancelled_at: new Date().toISOString(),
-      cancelled_by: null,
+      cancelled_by: user.id,
     })
     .eq("id", lessonId);
 
   if (updateError) {
-    throw new BookingError("Lesson konnte nicht storniert werden.");
+    console.error("[AdminCancelLesson] update failed", updateError);
+    throw new BookingError(
+      updateError.message ?? "Lesson konnte nicht storniert werden."
+    );
   }
 
   if (lesson.student_package_id) {
@@ -81,11 +101,16 @@ export async function adminUpdateLessonTime(
   const startUtc = start.toISOString();
   const endUtc = end.toISOString();
 
+  const adminSettings = await getAdminSettings();
+  const bufferMinutes =
+    adminSettings?.buffer_min ?? DEFAULT_LESSON_BUFFER_MINUTES;
+
   await ensureNoStudentCollision({
     studentId: lesson.student_id,
     startsAtIso: startUtc,
     endsAtIso: endUtc,
     ignoreLessonId: lessonId,
+    bufferMinutes,
   });
 
   const { error: updateError } = await supabaseService

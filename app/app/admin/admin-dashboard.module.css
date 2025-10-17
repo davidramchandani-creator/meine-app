@@ -1,10 +1,11 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.75rem;
+  width: 100%;
   max-width: 72rem;
   margin: 0 auto;
-  padding: 1.8rem 1rem 2.2rem;
+  padding: 2.5rem 1.5rem 3rem;
 }
 
 .header {
@@ -37,7 +38,7 @@
   gap: 0.4rem;
   border-radius: 1.1rem;
   border: 1px solid var(--color-border);
-  background: #ffffff;
+  background: var(--color-surface);
   padding: 1rem 1.1rem;
   box-shadow: var(--shadow-card-soft);
 }
@@ -87,25 +88,26 @@
 }
 
 .primaryAction {
-  background: linear-gradient(135deg, #1c244b 0%, #2a3665 100%);
+  background: #1e40af;
   color: #ffffff;
-  box-shadow: 0 6px 18px -8px rgba(28, 36, 75, 0.45);
+  box-shadow: 0 6px 18px -10px rgba(30, 64, 175, 0.35);
 }
 
 .primaryAction:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px -8px rgba(28, 36, 75, 0.45);
+  background: #162b73;
+  box-shadow: 0 10px 24px -10px rgba(22, 43, 115, 0.35);
 }
 
 .secondaryAction {
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  background: #ffffff;
+  color: #1e40af;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  background: #f4f6ff;
 }
 
 .secondaryAction:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: #1e40af;
+  color: #1e40af;
   transform: translateY(-1px);
 }
 

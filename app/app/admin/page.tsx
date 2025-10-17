@@ -1,5 +1,6 @@
 import { createSupabaseServer } from "@/lib/supabaseServer";
 import Link from "next/link";
+import sharedStyles from "./admin-shared.module.css";
 import styles from "./admin-dashboard.module.css";
 
 export default async function AdminOverviewPage() {
@@ -31,7 +32,7 @@ export default async function AdminOverviewPage() {
   ]);
 
   return (
-    <div className={styles.wrapper}>
+    <div className={sharedStyles.page}>
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Kennzahlen</h1>

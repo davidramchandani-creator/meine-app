@@ -100,15 +100,16 @@ Dieses Dokument fasst die Zielarchitektur für das Buchungs- und Vorschlagswesen
 - **Anfragen**: student→admin Requests (inkl. Gegenvorschläge via `counter_of`), Aktionen: *Annehmen*, *Ablehnen*, *Vorschlag zurück*. Verschiebungen sind klar markiert und aktualisieren bestehende Lessons.
 - **Kalender**: Übersicht geplanter Lessons, Konflikte sichtbar machen.
 - **Zahlungen**: pending/paid/refunded, Link zur Quittung.
-- **Einstellungen**: Standardparameter (Startadresse, Dauer 45 min, Puffer 5 min, Lead/Cancel Window).
+- **Einstellungen**: Standardparameter (Startadresse, Dauer 45 min, Puffer 30 min, Lead/Cancel Window) sowie generelle Verfügbarkeiten (Wochentage & Zeitfenster), die das Buchungssystem verwenden soll.
 
 ## Geschäftsregeln & Policies
 
 - **Dauer**: Default 45 Minuten je Lesson.
-- **Puffer**: 5 Minuten zwischen Lessons (weich, Warnung statt Blocker).
+- **Puffer**: 30 Minuten zwischen Lessons (hart geprüft bei Vorschlägen/Buchungen).
 - **Lead Time**: Buchungen min. 6 Stunden im Voraus.
 - **Storno-Regel**: Schüler-Storno nur > 24 h vor Beginn.
 - **Zeitzone**: UTC speichern, Anzeige in `Europe/Zurich`.
+- **Verfügbarkeiten**: Buchungs- und Vorschlagzeiten müssen in den unter `admin_settings.weekly_availability` hinterlegten Zeitfenstern liegen.
 - **Credits**: nur beim Annehmen abbuchen (Lesson-Erstellung).
 
 ## Supabase & Sicherheit
@@ -116,7 +117,7 @@ Dieses Dokument fasst die Zielarchitektur für das Buchungs- und Vorschlagswesen
 - **RLS**: Studenten nur Zugriff auf eigene Datensätze (`student_id = auth.uid()`), Admins über Profile (`role = 'admin'`).
 - **Server-Actions**: Für Lesson-Erstellung, Credits-Update, Request-Statuswechsel den Service-Role-Key (`supabaseService`) nutzen.
 - **Expiry & Cron**: Optional geplante Functions, die überfällige Requests automatisch auf `expired` setzen.
-- **Schema-Erweiterungen**: `booking_requests.kind`, `booking_requests.lesson_id`, `lessons.cancellation_reason`, `lessons.cancelled_at`, `lessons.cancelled_by`.
+- **Schema-Erweiterungen**: `booking_requests.kind`, `booking_requests.lesson_id`, `lessons.cancellation_reason`, `lessons.cancelled_at`, `lessons.cancelled_by`, `admin_settings.weekly_availability` (JSON pro Wochentag mit Zeitfenstern, z. B. `{ "monday": [{ "start": "14:00", "end": "18:00" }] }`).
 
 ## Backlog & Erweiterungen
 

@@ -6,6 +6,7 @@ import {
   normaliseBookingWindow,
   ensureNoStudentCollision,
   refundStudentPackageCredit,
+  DEFAULT_LESSON_BUFFER_MINUTES,
 } from "@/lib/booking";
 import { createSupabaseServer } from "@/lib/supabaseServer";
 import { supabaseService } from "@/lib/supabaseService";
@@ -59,6 +60,10 @@ export async function requestLessonReschedule(
       );
     }
 
+    const adminSettings = await getAdminSettings();
+    const bufferMinutes =
+      adminSettings?.buffer_min ?? DEFAULT_LESSON_BUFFER_MINUTES;
+
     const { startIso, endIso } = normaliseBookingWindow(start, end);
 
     await ensureNoStudentCollision({
@@ -66,6 +71,7 @@ export async function requestLessonReschedule(
       startsAtIso: startIso,
       endsAtIso: endIso,
       ignoreLessonId: lessonId,
+      bufferMinutes,
     });
 
     const { error: insertError } = await supabaseService

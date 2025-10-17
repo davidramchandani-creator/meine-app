@@ -7,9 +7,15 @@ import {
   ensureNoStudentCollision,
   fetchPendingRequest,
   normaliseBookingWindow,
+  DEFAULT_LESSON_BUFFER_MINUTES,
 } from "@/lib/booking";
 import { supabaseService } from "@/lib/supabaseService";
 import { revalidatePath } from "next/cache";
+import { getAdminSettings } from "@/lib/adminSettings";
+import {
+  DEFAULT_WEEKLY_AVAILABILITY,
+  isSlotWithinAvailability,
+} from "@/lib/availability";
 
 export async function createAdminSuggestion(
   studentId: string,
@@ -33,11 +39,24 @@ export async function createAdminSuggestion(
     { enforceLead: kind !== "reschedule" }
   );
 
+  const startDate = new Date(startUtc);
+  const endDate = new Date(endUtc);
+
+  const adminSettings = await getAdminSettings();
+  const availability = adminSettings?.weekly_availability ?? DEFAULT_WEEKLY_AVAILABILITY;
+  const bufferMinutes =
+    adminSettings?.buffer_min ?? DEFAULT_LESSON_BUFFER_MINUTES;
+
+  if (!isSlotWithinAvailability(startDate, endDate, availability)) {
+    throw new BookingError("Zeitpunkt liegt außerhalb der verfügbaren Slots.");
+  }
+
   await ensureNoStudentCollision({
     studentId,
     startsAtIso: startUtc,
     endsAtIso: endUtc,
     ignoreLessonId: options.lessonId,
+    bufferMinutes,
   });
 
   const { data: admin } = await supabaseService
@@ -116,6 +135,51 @@ export async function declineStudentRequest(requestId: string): Promise<void> {
     }
     throw error;
   }
+}
+
+export async function deleteStudentRequest(requestId: string): Promise<void> {
+  const { data: request, error: fetchError } = await supabaseService
+    .from("booking_requests")
+    .select("id, status, direction")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new Error("Anfrage konnte nicht geladen werden.");
+  }
+
+  if (!request) {
+    throw new Error("Anfrage wurde nicht gefunden.");
+  }
+
+  if (request.direction !== "student_to_admin") {
+    throw new Error("Anfrage kann nicht gelöscht werden.");
+  }
+
+  if (request.status === "pending") {
+    throw new Error("Offene Anfragen können nicht gelöscht werden.");
+  }
+
+  const { error: counterResetError } = await supabaseService
+    .from("booking_requests")
+    .update({ counter_of: null })
+    .eq("counter_of", requestId);
+
+  if (counterResetError) {
+    throw new Error("Verknüpfte Anfragen konnten nicht aktualisiert werden.");
+  }
+
+  const { error: deleteError } = await supabaseService
+    .from("booking_requests")
+    .delete()
+    .eq("id", requestId);
+
+  if (deleteError) {
+    throw new Error("Anfrage konnte nicht gelöscht werden.");
+  }
+
+  revalidatePath("/app/admin/requests");
+  revalidatePath("/app/admin");
 }
 
 export async function counterStudentRequest(

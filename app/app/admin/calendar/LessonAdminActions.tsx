@@ -58,53 +58,53 @@ export function LessonAdminActions({ lessonId, studentId, startsAt, endsAt }: Pr
   };
 
   return (
-    <div className={styles.actionsColumn}>
-      <div className={styles.actions}>
+    <div className={styles.actionContainer}>
+      <div className={styles.actionRow}>
         <button
           type="button"
-          className={styles.actionButtonSecondary}
+          className={styles.actionButton}
           onClick={() => setOpenReschedule((prev) => !prev)}
           disabled={isPending}
         >
           Direkt verschieben
         </button>
         <Link
-          className={styles.actionButtonSecondary}
+          className={styles.actionButton}
           href={`/app/admin/requests/new?student=${studentId}&lesson=${lessonId}&mode=reschedule`}
         >
           Vorschlag senden
         </Link>
+        <button
+          type="button"
+          className={styles.actionButton}
+          onClick={() => setOpenCancel((prev) => !prev)}
+          disabled={isPending}
+        >
+          Stornieren
+        </button>
       </div>
-      <button
-        type="button"
-        className={styles.actionButtonSecondary}
-        onClick={() => setOpenCancel((prev) => !prev)}
-        disabled={isPending}
-      >
-        Stornieren
-      </button>
 
       {openReschedule && (
-        <div className={styles.list}>
-          <label className={styles.listSubtitle}>
+        <div className={styles.actionDrawer}>
+          <label className={styles.actionDrawerLabel}>
             Neuer Start
             <input
               type="datetime-local"
               value={start}
               onChange={(e) => setStart(e.target.value)}
-              className={styles.actionButtonSecondary}
+              className={styles.actionInput}
             />
           </label>
-          <label className={styles.listSubtitle}>
+          <label className={styles.actionDrawerLabel}>
             Neues Ende
             <input
               type="datetime-local"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
-              className={styles.actionButtonSecondary}
+              className={styles.actionInput}
             />
           </label>
-          <div className={styles.actions}>
+          <div className={styles.actionRow}>
             <button
               type="button"
               className={styles.actionButton}
@@ -126,18 +126,18 @@ export function LessonAdminActions({ lessonId, studentId, startsAt, endsAt }: Pr
       )}
 
       {openCancel && (
-        <div className={styles.list}>
-          <label className={styles.listSubtitle}>
+        <div className={styles.actionDrawer}>
+          <label className={styles.actionDrawerLabel}>
             Grund (optional)
             <input
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className={styles.actionButtonSecondary}
+              className={styles.actionInput}
               placeholder="z. B. Krankheitsfall"
             />
           </label>
-          <div className={styles.actions}>
+          <div className={styles.actionRow}>
             <button
               type="button"
               className={styles.actionButton}

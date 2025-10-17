@@ -4,6 +4,7 @@ import styles from "../admin-shared.module.css";
 import {
   acceptStudentRequest,
   declineStudentRequest,
+  deleteStudentRequest,
 } from "./actions";
 
 type RequestRow = {
@@ -44,6 +45,37 @@ function formatDateRange(startIso: string, endIso: string) {
   })}`;
 
   return { date, range };
+}
+
+function resolveStudentLabel(profile?: StudentProfile) {
+  if (!profile) return "Unbekannter Schüler";
+  return profile.full_name?.trim().length
+    ? profile.full_name
+    : profile.email ?? "Unbekannter Schüler";
+}
+
+function humanizeStatus(status: string) {
+  switch (status) {
+    case "pending":
+      return { label: "Wartet", badge: styles.statusBadgePending };
+    case "accepted":
+    case "booked":
+      return { label: "Bestätigt", badge: styles.statusBadgeAccepted };
+    case "declined":
+    case "cancelled":
+      return { label: "Abgelehnt", badge: styles.statusBadgeDeclined };
+    default:
+      return { label: status ?? "Unbekannt", badge: styles.statusBadgePending };
+  }
+}
+
+function formatCreatedAt(iso: string) {
+  return new Date(iso).toLocaleString("de-CH", {
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default async function AdminRequestsPage() {
@@ -91,41 +123,57 @@ export default async function AdminRequestsPage() {
                 request.proposed_starts_at,
                 request.proposed_ends_at
               );
-              const isReschedule = request.kind === "reschedule";
+              const profile = profileMap.get(request.student_id);
+              const status = humanizeStatus(request.status);
+              const createdLabel = formatCreatedAt(request.created_at);
+              const typeLabel =
+                request.kind === "reschedule" ? "Verschiebung" : "Neue Buchung";
 
               return (
-                <div key={request.id} className={styles.listItem}>
-                  <div className={styles.listMeta}>
-                    <span className={styles.listTitle}>
-                      {profileMap.get(request.student_id)?.full_name ??
-                        profileMap.get(request.student_id)?.email ??
-                        "Unbekannter Schüler"}
-                    </span>
-                    <span className={styles.listSubtitle}>
-                      {date} · {range}
-                    </span>
-                    <span className={styles.listSubtitle}>
-                      Typ: {isReschedule ? "Verschiebung" : "Neue Buchung"}
-                    </span>
-                    {request.message ? (
-                      <span className={styles.listSubtitle}>
-                        {request.message}
+                <article key={request.id} className={styles.listItem}>
+                  <div className={styles.cardHeader}>
+                    <div className={styles.cardHeading}>
+                      <span className={styles.cardTitle}>
+                        {resolveStudentLabel(profile)}
                       </span>
+                      <span className={styles.cardSubtitle}>
+                        {date} · {range}
+                      </span>
+                    </div>
+                    <span className={`${styles.statusBadge} ${status.badge}`}>
+                      {status.label}
+                    </span>
+                  </div>
+
+                  <div className={styles.metaGrid}>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Typ</span>
+                      <span className={styles.metaValue}>{typeLabel}</span>
+                    </div>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Erstellt</span>
+                      <span className={styles.metaValue}>{createdLabel}</span>
+                    </div>
+                    {request.lesson_id ? (
+                      <div className={styles.metaItem}>
+                        <span className={styles.metaLabel}>Bestehende Lektion</span>
+                        <span className={styles.metaValue}>#{request.lesson_id.slice(0, 6)}</span>
+                      </div>
                     ) : null}
                   </div>
+
+                  {request.message ? (
+                    <div className={styles.cardNote}>{request.message}</div>
+                  ) : null}
+
                   <div className={styles.actions}>
                     <form action={acceptStudentRequest.bind(null, request.id)}>
                       <button className={styles.actionButton} type="submit">
                         Annehmen
                       </button>
                     </form>
-                    <form
-                      action={declineStudentRequest.bind(null, request.id)}
-                    >
-                      <button
-                        className={styles.actionButtonSecondary}
-                        type="submit"
-                      >
+                    <form action={declineStudentRequest.bind(null, request.id)}>
+                      <button className={styles.actionButtonSecondary} type="submit">
                         Ablehnen
                       </button>
                     </form>
@@ -136,7 +184,7 @@ export default async function AdminRequestsPage() {
                       Gegenvorschlag
                     </Link>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
@@ -157,35 +205,59 @@ export default async function AdminRequestsPage() {
                 request.proposed_starts_at,
                 request.proposed_ends_at
               );
+              const profile = profileMap.get(request.student_id);
+              const status = humanizeStatus(request.status);
+              const typeLabel =
+                request.kind === "reschedule" ? "Verschiebung" : "Neue Buchung";
 
               return (
-                <div key={request.id} className={styles.listItem}>
-                  <div className={styles.listMeta}>
-                    <span className={styles.listTitle}>
-                      {profileMap.get(request.student_id)?.full_name ??
-                        profileMap.get(request.student_id)?.email ??
-                        "Unbekannter Schüler"}
-                    </span>
-                    <span className={styles.listSubtitle}>
-                      {date} · {range}
-                    </span>
-                    <span className={styles.listSubtitle}>
-                      Typ: {request.kind === "reschedule" ? "Verschiebung" : "Neue Buchung"}
-                    </span>
-                    <span className={styles.listSubtitle}>
-                      Status: {request.status}
+                <article key={request.id} className={styles.listItem}>
+                  <div className={styles.cardHeader}>
+                    <div className={styles.cardHeading}>
+                      <span className={styles.cardTitle}>
+                        {resolveStudentLabel(profile)}
+                      </span>
+                      <span className={styles.cardSubtitle}>
+                        {date} · {range}
+                      </span>
+                    </div>
+                    <span className={`${styles.statusBadge} ${status.badge}`}>
+                      {status.label}
                     </span>
                   </div>
-                  <span className={styles.listSubtitle}>
-                    Erstellt am{" "}
-                    {new Date(request.created_at).toLocaleString("de-CH", {
-                      day: "numeric",
-                      month: "long",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
+
+                  <div className={styles.metaGrid}>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Typ</span>
+                      <span className={styles.metaValue}>{typeLabel}</span>
+                    </div>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Status</span>
+                      <span className={styles.metaValue}>{status.label}</span>
+                    </div>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Erstellt</span>
+                      <span className={styles.metaValue}>
+                        {formatCreatedAt(request.created_at)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {request.message ? (
+                    <div className={styles.cardNote}>{request.message}</div>
+                  ) : null}
+
+                  <div className={styles.actions}>
+                    <form action={deleteStudentRequest.bind(null, request.id)}>
+                      <button
+                        className={`${styles.actionButtonSecondary} ${styles.actionButtonDanger}`}
+                        type="submit"
+                      >
+                        Löschen
+                      </button>
+                    </form>
+                  </div>
+                </article>
               );
             })}
           </div>
