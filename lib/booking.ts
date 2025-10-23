@@ -340,6 +340,48 @@ export async function refundStudentPackageCredit(studentPackageId: string) {
   }
 }
 
+export async function chargeStudentPackageCredit(studentPackageId: string) {
+  const { data: pkg, error } = await supabaseService
+    .from("student_packages")
+    .select("id, lessons_total, lessons_used, status")
+    .eq("id", studentPackageId)
+    .single<StudentPackageRow>();
+
+  if (error || !pkg) {
+    throw new BookingError(
+      "Paket konnte für die erneute Verrechnung nicht geladen werden."
+    );
+  }
+
+  const total = pkg.lessons_total ?? 0;
+  const currentUsed = pkg.lessons_used ?? 0;
+
+  if (total > 0 && currentUsed >= total) {
+    // Bereits alle Credits genutzt – keine weitere Belastung möglich.
+    throw new BookingError(
+      "Keine verfügbaren Credits mehr im Paket. Bitte neues Paket aktivieren."
+    );
+  }
+
+  const used = currentUsed + 1;
+  const newStatus =
+    total > 0 && used >= total ? "completed" : "active";
+
+  const { error: updateError } = await supabaseService
+    .from("student_packages")
+    .update({
+      lessons_used: used,
+      status: newStatus,
+    })
+    .eq("id", pkg.id);
+
+  if (updateError) {
+    throw new BookingError(
+      "Credit konnte nicht erneut belastet werden."
+    );
+  }
+}
+
 export async function declineRequest(options: {
   requestId: string;
   expectedDirection: BookingDirection;

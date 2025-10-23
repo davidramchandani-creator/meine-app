@@ -36,10 +36,12 @@
   align-items: center;
   padding: 0.55rem 0.9rem;
   border-radius: 999px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(28, 36, 75, 0.08);
+  backdrop-filter: blur(12px);
   box-shadow: var(--shadow-card-soft);
   z-index: 10;
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
 }
 
 .navLink {
@@ -60,6 +62,23 @@
 .navLink:hover {
   color: var(--color-primary);
   background: var(--color-primary-soft);
+}
+
+.bottomNav:hover {
+  transform: translateX(-50%) translateY(-4px);
+  box-shadow: 0 20px 40px -24px rgba(28, 36, 75, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  .bottomNav {
+    background: rgba(21, 26, 47, 0.86);
+    border: 1px solid rgba(100, 133, 255, 0.25);
+    box-shadow: 0 20px 40px -26px rgba(3, 6, 20, 0.8);
+  }
+
+  .bottomNav:hover {
+    box-shadow: 0 26px 44px -26px rgba(3, 6, 20, 0.9);
+  }
 }
 
 .navLinkActive {

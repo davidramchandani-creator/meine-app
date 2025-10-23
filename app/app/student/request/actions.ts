@@ -65,6 +65,23 @@ export async function submitStudentRequest(
     const bufferMinutes =
       adminSettings?.buffer_min ?? DEFAULT_LESSON_BUFFER_MINUTES;
 
+    const { data: activePackage, error: packageError } = await supabaseService
+      .from("v_student_current_package")
+      .select("lessons_left")
+      .eq("student_id", user.id)
+      .maybeSingle();
+
+    if (packageError) {
+      throw new BookingError("Paketstatus konnte nicht geprüft werden.");
+    }
+
+    const lessonsLeft = activePackage?.lessons_left ?? 0;
+    if (!activePackage || lessonsLeft <= 0) {
+      throw new BookingError(
+        "Du benötigst ein aktives Paket mit verfügbaren Credits, um eine Lektion anzufragen."
+      );
+    }
+
     if (!isSlotWithinAvailability(startDate, endDate, availability)) {
       throw new BookingError("Die gewählte Zeit liegt außerhalb der verfügbaren Slots.");
     }

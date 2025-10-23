@@ -23,6 +23,12 @@ export async function GET(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: "meine-app-auth",
+      },
       cookies: {
         get(name) {
           return request.cookies.get(name)?.value;
@@ -46,7 +52,11 @@ export async function GET(request: NextRequest) {
   );
 
   if (exchangeError) {
-    return NextResponse.redirect(new URL("/login?error=auth", requestUrl));
+    console.error("[auth/callback] exchange error", exchangeError);
+    const message = encodeURIComponent(exchangeError.message ?? "unknown");
+    return NextResponse.redirect(
+      new URL(`/login?error=auth&message=${message}`, requestUrl)
+    );
   }
 
   let destination = requestedNext ?? STUDENT_PATH;

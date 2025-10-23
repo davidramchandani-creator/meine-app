@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import sharedStyles from "../admin-shared.module.css";
 import styles from "./admin-students.module.css";
 import type { StudentOverviewCard } from "./page";
+import { removeStudentPackage } from "./actions";
 
 type Filter = "all" | "lowCredits" | "withUpcoming";
 
@@ -20,13 +21,24 @@ function matchesFilter(student: StudentOverviewCard, filter: Filter) {
 }
 
 export function StudentsOverview({ students }: { students: StudentOverviewCard[] }) {
+  const [displayStudents, setDisplayStudents] = useState(students);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<StudentOverviewCard | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [isRemoving, startRemove] = useTransition();
+
+  useEffect(() => {
+    setDisplayStudents(students);
+  }, [students]);
+
+  useEffect(() => {
+    setActionError(null);
+  }, [selected?.id]);
 
   const filteredStudents = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return students.filter((student) => {
+    return displayStudents.filter((student) => {
       const matchesQuery =
         !q ||
         student.name.toLowerCase().includes(q) ||
@@ -34,7 +46,11 @@ export function StudentsOverview({ students }: { students: StudentOverviewCard[]
       const matches = matchesQuery && matchesFilter(student, filter);
       return matches;
     });
-  }, [students, query, filter]);
+  }, [displayStudents, query, filter]);
+
+  useEffect(() => {
+    setActionError(null);
+  }, [selected?.id]);
 
   return (
     <div className={sharedStyles.page}>
@@ -97,7 +113,15 @@ export function StudentsOverview({ students }: { students: StudentOverviewCard[]
                   <h2 className={styles.cardTitle}>{student.name}</h2>
                   <span className={styles.cardSubtitle}>{student.email}</span>
                 </div>
-                <span className={styles.statusBadge}>{student.statusLabel}</span>
+                <span
+                  className={`${styles.statusBadge} ${
+                    student.statusLabel === "Aufgebraucht"
+                      ? styles.statusBadgeDepleted
+                      : ""
+                  }`}
+                >
+                  {student.statusLabel}
+                </span>
               </div>
 
               <div className={styles.cardInfo}>
@@ -237,15 +261,59 @@ export function StudentsOverview({ students }: { students: StudentOverviewCard[]
               </Link>
               <button
                 type="button"
+                className={styles.modalDangerAction}
+                onClick={() => {
+                  if (!selected) return;
+                  const studentId = selected.id;
+                  setActionError(null);
+                  startRemove(async () => {
+                    const result = await removeStudentPackage(studentId);
+                    if (!result.ok) {
+                      setActionError(
+                        result.error ?? "Paket konnte nicht entnommen werden."
+                      );
+                      return;
+                    }
+
+                    setDisplayStudents((prev) =>
+                      prev.map((studentItem) =>
+                        studentItem.id === studentId
+                          ? {
+                              ...studentItem,
+                              creditsLeft: 0,
+                              creditsUsed: 0,
+                              creditsTotal: 0,
+                              statusLabel: "Aufgebraucht",
+                              pricePerLessonLabel: null,
+                              travelFeeLabel: null,
+                              travelDistanceLabel: null,
+                            }
+                          : studentItem
+                      )
+                    );
+
+                    setSelected(null);
+                  });
+                }}
+                disabled={isRemoving || selected.statusLabel !== "Aktiv"}
+              >
+                Paket entnehmen
+              </button>
+              <button
+                type="button"
                 className={styles.modalPrimaryAction}
                 onClick={() => {
                   // Placeholder for future actions
                   setSelected(null);
                 }}
+                disabled={isRemoving}
               >
                 Schließen
               </button>
             </div>
+            {actionError ? (
+              <p className={styles.modalError}>{actionError}</p>
+            ) : null}
           </div>
         </div>
       ) : null}

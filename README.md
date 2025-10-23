@@ -23,6 +23,22 @@ npm install
 npm run dev
 ```
 
+### Progressive Web App (PWA)
+
+Die App ist für eine app-ähnliche Nutzung vorbereitet:
+
+- Manifest & Icons liegen unter `app/manifest.ts` sowie `public/icon-*.png` und sorgen für Installierbarkeit.
+- Ein Service Worker (`public/sw.js`) cached Seiten & Assets für Offline-Betrieb und navigiert bei fehlender Verbindung auf `/offline`.
+- Die Registrierung erfolgt clientseitig über den `PwaInitializer` (`app/pwa/PwaInitializer.tsx`). Bei Updates löst er das DOM-Event `pwa:updateavailable` aus, auf das du mit eigenem UI reagieren kannst.
+
+**Test-Tipps**
+
+1. Produktion simulieren: `npm run build && npm run start`, anschließend `http://localhost:3000` im Browser öffnen.
+2. Service Worker prüfen: In Chrome DevTools → `Application` → `Service Workers`, dann „Offline“ aktivieren und UI weiter nutzen.
+3. Installation: In Chrome „Installieren“ bzw. auf iOS über „Zum Home-Bildschirm“.
+
+> Cache-Strategie anpassen? Passe die Konstante `CACHE_VERSION` in `public/sw.js` oder die Fall-Back-Routen (`PRECACHE_URLS`) an. Nach Änderungen Service Worker in DevTools aktualisieren.
+
 ### Auth-Flow testen
 
 1. Öffne [http://localhost:3000/login](http://localhost:3000/login) und fordere einen Magic-Link für eine E-Mail-Adresse an.  

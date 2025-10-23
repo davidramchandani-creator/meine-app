@@ -5,6 +5,7 @@ import {
   BookingError,
   ensureNoStudentCollision,
   refundStudentPackageCredit,
+  chargeStudentPackageCredit,
   DEFAULT_LESSON_BUFFER_MINUTES,
 } from "@/lib/booking";
 import { supabaseService } from "@/lib/supabaseService";
@@ -128,4 +129,121 @@ export async function adminUpdateLessonTime(
   revalidatePath("/app/admin/calendar");
   revalidatePath("/app/student/lessons");
   revalidatePath("/app/student");
+}
+
+export async function adminSetLessonStatus(
+  lessonId: string,
+  status: "booked" | "completed"
+) {
+  const supabase = await createSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new BookingError("Bitte erneut anmelden.");
+  }
+
+  const { data: lesson, error } = await supabaseService
+    .from("lessons")
+    .select("id, status, student_package_id")
+    .eq("id", lessonId)
+    .single();
+
+  if (error || !lesson) {
+    throw new BookingError("Lesson nicht gefunden.");
+  }
+
+  if (lesson.status === status) {
+    return;
+  }
+
+  if (lesson.student_package_id) {
+    if (
+      lesson.status === "no_show_refunded" ||
+      lesson.status === "cancelled"
+    ) {
+      await chargeStudentPackageCredit(lesson.student_package_id);
+    }
+  }
+
+  const { error: updateError } = await supabaseService
+    .from("lessons")
+    .update({ status })
+    .eq("id", lessonId);
+
+  if (updateError) {
+    throw new BookingError(
+      updateError.message ?? "Lesson-Status konnte nicht aktualisiert werden."
+    );
+  }
+
+  revalidatePath("/app/admin/calendar");
+  revalidatePath("/app/student/lessons");
+  revalidatePath("/app/student");
+  revalidatePath("/app/admin/students");
+}
+
+export async function adminRegisterNoShow(
+  lessonId: string,
+  options: { refundCredit: boolean }
+) {
+  const supabase = await createSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new BookingError("Bitte erneut anmelden.");
+  }
+
+  const { data: lesson, error } = await supabaseService
+    .from("lessons")
+    .select("id, status, student_package_id")
+    .eq("id", lessonId)
+    .single();
+
+  if (error || !lesson) {
+    throw new BookingError("Lesson nicht gefunden.");
+  }
+
+  const targetStatus = options.refundCredit
+    ? "no_show_refunded"
+    : "no_show_charged";
+
+  if (lesson.status === targetStatus) {
+    return;
+  }
+
+  if (lesson.student_package_id) {
+    if (options.refundCredit) {
+      if (
+        lesson.status !== "no_show_refunded" &&
+        lesson.status !== "cancelled"
+      ) {
+        await refundStudentPackageCredit(lesson.student_package_id);
+      }
+    } else if (
+      lesson.status === "no_show_refunded" ||
+      lesson.status === "cancelled"
+    ) {
+      await chargeStudentPackageCredit(lesson.student_package_id);
+    }
+  }
+
+  const { error: updateError } = await supabaseService
+    .from("lessons")
+    .update({ status: targetStatus })
+    .eq("id", lessonId);
+
+  if (updateError) {
+    throw new BookingError(
+      updateError.message ?? "Lesson konnte nicht aktualisiert werden."
+    );
+  }
+
+  revalidatePath("/app/admin/calendar");
+  revalidatePath("/app/student/lessons");
+  revalidatePath("/app/student");
+  revalidatePath("/app/admin/students");
 }

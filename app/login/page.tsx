@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabaseBrowser";
 import styles from "./login.module.css";
 
@@ -9,6 +10,20 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+
+  const queryError = useMemo(() => {
+    const message = searchParams.get("message");
+    if (!message) {
+      return null;
+    }
+
+    try {
+      return decodeURIComponent(message);
+    } catch {
+      return message;
+    }
+  }, [searchParams]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,6 +75,9 @@ export default function LoginPage() {
             Link senden
           </button>
           {error ? <p className={styles.error}>{error}</p> : null}
+          {!error && queryError ? (
+            <p className={styles.error}>Anmeldung fehlgeschlagen: {queryError}</p>
+          ) : null}
         </form>
       )}
     </div>

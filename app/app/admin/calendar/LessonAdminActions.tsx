@@ -5,6 +5,8 @@ import { useState, useTransition } from "react";
 import {
   adminUpdateLessonTime,
   cancelLessonAsAdmin,
+  adminSetLessonStatus,
+  adminRegisterNoShow,
 } from "./actions";
 import styles from "../admin-shared.module.css";
 
@@ -13,6 +15,7 @@ type Props = {
   studentId: string;
   startsAt: string;
   endsAt: string;
+  status: string;
 };
 
 function toLocalValue(iso: string) {
@@ -23,9 +26,16 @@ function toLocalValue(iso: string) {
   return local.toISOString().slice(0, 16);
 }
 
-export function LessonAdminActions({ lessonId, studentId, startsAt, endsAt }: Props) {
+export function LessonAdminActions({
+  lessonId,
+  studentId,
+  startsAt,
+  endsAt,
+  status,
+}: Props) {
   const [openReschedule, setOpenReschedule] = useState(false);
   const [openCancel, setOpenCancel] = useState(false);
+  const [openNoShow, setOpenNoShow] = useState(false);
   const [start, setStart] = useState(toLocalValue(startsAt));
   const [end, setEnd] = useState(toLocalValue(endsAt));
   const [reason, setReason] = useState("");
@@ -57,6 +67,35 @@ export function LessonAdminActions({ lessonId, studentId, startsAt, endsAt }: Pr
     });
   };
 
+  const handleStatusChange = (nextStatus: "booked" | "completed") => {
+    setError(null);
+    setOpenNoShow(false);
+    startTransition(async () => {
+      try {
+        await adminSetLessonStatus(lessonId, nextStatus);
+      } catch (err: any) {
+        setError(err?.message ?? "Lesson-Status konnte nicht aktualisiert werden.");
+      }
+    });
+  };
+
+  const handleNoShow = (refundCredit: boolean) => {
+    setError(null);
+    startTransition(async () => {
+      try {
+        await adminRegisterNoShow(lessonId, { refundCredit });
+        setOpenNoShow(false);
+      } catch (err: any) {
+        setError(err?.message ?? "Nicht-Erscheinen konnte nicht erfasst werden.");
+      }
+    });
+  };
+
+  const isBooked = status === "booked";
+  const isCompleted = status === "completed";
+  const isNoShowCharged = status === "no_show_charged";
+  const isNoShowRefunded = status === "no_show_refunded";
+
   return (
     <div className={styles.actionContainer}>
       <div className={styles.actionRow}>
@@ -81,6 +120,33 @@ export function LessonAdminActions({ lessonId, studentId, startsAt, endsAt }: Pr
           disabled={isPending}
         >
           Stornieren
+        </button>
+      </div>
+
+      <div className={styles.actionRow}>
+        <button
+          type="button"
+          className={styles.actionButtonSecondary}
+          onClick={() => handleStatusChange("completed")}
+          disabled={isPending || isCompleted}
+        >
+          Als gehalten markieren
+        </button>
+        <button
+          type="button"
+          className={styles.actionButtonSecondary}
+          onClick={() => handleStatusChange("booked")}
+          disabled={isPending || isBooked}
+        >
+          Zurück auf geplant
+        </button>
+        <button
+          type="button"
+          className={styles.actionButtonSecondary}
+          onClick={() => setOpenNoShow((prev) => !prev)}
+          disabled={isPending}
+        >
+          Nicht erschienen
         </button>
       </div>
 
@@ -153,6 +219,40 @@ export function LessonAdminActions({ lessonId, studentId, startsAt, endsAt }: Pr
               disabled={isPending}
             >
               Abbrechen
+            </button>
+          </div>
+        </div>
+      )}
+
+      {openNoShow && (
+        <div className={styles.actionDrawer}>
+          <span className={styles.actionDrawerLabel}>
+            Wie soll der Credit behandelt werden?
+          </span>
+          <div className={styles.actionRow}>
+            <button
+              type="button"
+              className={styles.actionButtonSecondary}
+              onClick={() => handleNoShow(false)}
+              disabled={isPending || isNoShowCharged}
+            >
+              Credit behalten
+            </button>
+            <button
+              type="button"
+              className={styles.actionButtonSecondary}
+              onClick={() => handleNoShow(true)}
+              disabled={isPending || isNoShowRefunded}
+            >
+              Credit zurückgeben
+            </button>
+            <button
+              type="button"
+              className={styles.actionButtonSecondary}
+              onClick={() => setOpenNoShow(false)}
+              disabled={isPending}
+            >
+              Schließen
             </button>
           </div>
         </div>

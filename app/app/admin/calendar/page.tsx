@@ -19,9 +19,19 @@ type StudentProfile = {
 function resolveStatus(status: string) {
   switch (status) {
     case "booked":
-      return { label: "Gebucht", badge: sharedStyles.statusBadgeBooked };
+      return { label: "Geplant", badge: sharedStyles.statusBadgeBooked };
     case "completed":
-      return { label: "Abgeschlossen", badge: sharedStyles.statusBadgeAccepted };
+      return { label: "Gehalten", badge: sharedStyles.statusBadgeAccepted };
+    case "no_show_charged":
+      return {
+        label: "Nicht erschienen (berechnet)",
+        badge: sharedStyles.statusBadgeWarning,
+      };
+    case "no_show_refunded":
+      return {
+        label: "Nicht erschienen (erstattet)",
+        badge: sharedStyles.statusBadgeInfo,
+      };
     case "cancelled":
       return { label: "Storniert", badge: sharedStyles.statusBadgeDeclined };
     default:
@@ -41,7 +51,7 @@ export default async function AdminCalendarPage() {
   const { data: lessons } = await supabase
     .from("lessons")
     .select("id, student_id, starts_at, ends_at, status")
-    .eq("status", "booked")
+    .in("status", ["booked", "completed", "no_show_charged", "no_show_refunded"])
     .order("starts_at", { ascending: true })
     .limit(50)
     .returns<LessonRow[]>();

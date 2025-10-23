@@ -158,6 +158,7 @@ export function CalendarPreview({ lessons }: Props) {
           studentId={lesson.studentId}
           startsAt={lesson.startsAt}
           endsAt={lesson.endsAt}
+          status={lesson.status}
         />
       </>
     );

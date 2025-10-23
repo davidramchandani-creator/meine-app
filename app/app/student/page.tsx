@@ -18,8 +18,8 @@ type ProfileView = {
 };
 
 const PACKAGE_BASE_PRICES: Record<string, number> = {
-  "05c6afa6-8a00-4cb9-ba6e-68a59f37a0cc": 60,
-  "4ab83713-13e4-4c7c-b403-42d2110fd73e": 55,
+  "05c6afa6-8a00-4cb9-ba6e-68a59f37a0cc": 80,
+  "4ab83713-13e4-4c7c-b403-42d2110fd73e": 75,
 };
 
 const BASE_PACKAGES = [
@@ -27,14 +27,14 @@ const BASE_PACKAGES = [
     packageId: "05c6afa6-8a00-4cb9-ba6e-68a59f37a0cc",
     id: "10" as const,
     lessons: 10,
-    basePrice: 60,
+    basePrice: 80,
     title: "10er Paket",
   },
   {
     packageId: "4ab83713-13e4-4c7c-b403-42d2110fd73e",
     id: "20" as const,
     lessons: 20,
-    basePrice: 55,
+    basePrice: 75,
     title: "20er Paket",
   },
 ];
@@ -57,9 +57,14 @@ function computeTravelFeeChf(distanceKm: number | null): number | null {
   if (distanceKm == null) {
     return null;
   }
-  const overKm = Math.max(distanceKm - 10, 0);
-  const fee = Math.ceil(overKm / 7) * 7;
-  return fee;
+  const additionalKm = distanceKm - 5;
+  if (additionalKm <= 0) {
+    return 0;
+  }
+
+  const fullBlocks = Math.floor(additionalKm / 5);
+  const effectiveBlocks = Math.max(fullBlocks, 0);
+  return effectiveBlocks * 5;
 }
 
 export default async function StudentHome() {
@@ -100,6 +105,7 @@ export default async function StudentHome() {
   const left = currentPackage?.lessons_left ?? 0;
   const progress = total ? Math.round((used / total) * 100) : 0;
   const canBuyNew = left === 0;
+  const canBookLesson = left > 0;
   const nextLessonDate = currentPackage?.next_lesson_at
     ? new Date(currentPackage.next_lesson_at)
     : null;
@@ -296,9 +302,18 @@ export default async function StudentHome() {
           )}
 
           <div className={styles.actionButtons}>
-            <Link className={styles.bookButton} href="/app/student/request">
-              Nächste Lektion buchen
-            </Link>
+            {canBookLesson ? (
+              <Link className={styles.bookButton} href="/app/student/request">
+                Nächste Lektion buchen
+              </Link>
+            ) : (
+              <span
+                className={`${styles.bookButton} ${styles.bookButtonDisabled}`}
+                aria-disabled="true"
+              >
+                Nächste Lektion buchen
+              </span>
+            )}
             <Link
               className={styles.secondaryButton}
               href="/app/student/suggestions"

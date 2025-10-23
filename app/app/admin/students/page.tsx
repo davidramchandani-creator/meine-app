@@ -4,8 +4,8 @@ import { supabaseService } from "@/lib/supabaseService";
 import { StudentsOverview } from "./StudentsOverview";
 
 const PACKAGE_BASE_PRICES: Record<string, number> = {
-  "05c6afa6-8a00-4cb9-ba6e-68a59f37a0cc": 60,
-  "4ab83713-13e4-4c7c-b403-42d2110fd73e": 55,
+  "05c6afa6-8a00-4cb9-ba6e-68a59f37a0cc": 80,
+  "4ab83713-13e4-4c7c-b403-42d2110fd73e": 75,
 };
 
 type StudentRow = {
@@ -63,7 +63,7 @@ export default async function AdminStudentsPage() {
         .select(
           "student_id, package_id, lessons_total, lessons_used, status, travel_distance_km, travel_fee_per_lesson_chf, packages(name, base_price_chf, price_per_lesson_chf), created_at"
         )
-        .eq("status", "active")
+        .in("status", ["active", "completed"])
         .order("created_at", { ascending: false })
         .returns<ActivePackageRow[]>(),
       supabaseService
@@ -89,21 +89,22 @@ export default async function AdminStudentsPage() {
       const pkg = packageByStudent.get(student.id);
       const summary = summaryByStudent.get(student.id);
 
-      const creditsTotal = pkg?.lessons_total ?? 0;
-      const creditsUsed = pkg?.lessons_used ?? 0;
-      const creditsLeft =
-        summary?.lessons_left ?? Math.max(creditsTotal - creditsUsed, 0);
+      const creditsTotalRaw = pkg?.lessons_total ?? 0;
+      const creditsUsedRaw = pkg?.lessons_used ?? 0;
+      const computedLeft =
+        summary?.lessons_left ?? Math.max(creditsTotalRaw - creditsUsedRaw, 0);
+      const hasAnyPackage = !!pkg;
+      const isDepleted = hasAnyPackage && computedLeft <= 0;
+
+      const creditsTotal = hasAnyPackage ? (isDepleted ? 0 : creditsTotalRaw) : 0;
+      const creditsUsed = hasAnyPackage ? (isDepleted ? 0 : creditsUsedRaw) : 0;
+      const creditsLeft = hasAnyPackage ? computedLeft : 0;
+
       const statusLabel = (() => {
-        switch (pkg?.status) {
-          case "active":
-            return "Aktiv";
-          case "completed":
-            return "Abgeschlossen";
-          case "inactive":
-            return "Inaktiv";
-          default:
-            return "Kein Paket";
+        if (!hasAnyPackage) {
+          return "Kein Paket";
         }
+        return isDepleted ? "Aufgebraucht" : "Aktiv";
       })();
 
       const nextLesson = summary?.next_lesson_at
@@ -134,7 +135,7 @@ export default async function AdminStudentsPage() {
         pkg?.travel_distance_km != null ? Number(pkg.travel_distance_km) : null;
 
       const pricePerLesson =
-        basePrice != null
+        hasAnyPackage && !isDepleted && basePrice != null
           ? Number(basePrice) + Number(travelFee ?? 0)
           : null;
 
@@ -152,11 +153,11 @@ export default async function AdminStudentsPage() {
             ? `CHF ${pricePerLesson.toFixed(2)} pro Lektion`
             : null,
         travelFeeLabel:
-          travelFee != null
-            ? `Wegkosten: CHF ${travelFee.toFixed(2)}`
-            : null,
+        travelFee != null && !isDepleted
+          ? `Wegkosten: CHF ${travelFee.toFixed(2)}`
+          : null,
         travelDistanceLabel:
-          travelDistance != null
+          travelDistance != null && !isDepleted
             ? `Distanz (Snapshot): ${travelDistance.toFixed(1)} km`
             : null,
       };

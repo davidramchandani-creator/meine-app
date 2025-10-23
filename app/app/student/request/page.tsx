@@ -16,6 +16,30 @@ export default async function StudentRequestPage() {
     redirect("/login");
   }
 
+  const { data: currentPackage, error: packageError } = await supabase
+    .from("v_student_current_package")
+    .select("lessons_left")
+    .eq("student_id", user.id)
+    .maybeSingle();
+
+  if (packageError) {
+    console.error("Failed to load current package", packageError);
+  }
+
+  if (!currentPackage || (currentPackage.lessons_left ?? 0) <= 0) {
+    return (
+      <div>
+        <h1 className="mb-4 text-xl font-semibold text-slate-900">
+          Keine Credits verfügbar
+        </h1>
+        <p className="mb-4 text-sm text-slate-600">
+          Für neue Anfragen benötigst du ein aktives Paket mit freien Lektionen.
+          Buche zuerst ein Paket im Schülerbereich.
+        </p>
+      </div>
+    );
+  }
+
   const adminSettings = await getAdminSettings();
   const bufferMinutes =
     adminSettings?.buffer_min ?? DEFAULT_LESSON_BUFFER_MINUTES;

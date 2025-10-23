@@ -284,6 +284,14 @@
   box-shadow: 0 10px 24px -6px rgba(28, 36, 75, 0.4);
 }
 
+.bookButtonDisabled {
+  background: #e5e7eb;
+  color: #6b7280;
+  box-shadow: none;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .secondaryButton {
   display: inline-flex;
   align-items: center;
