@@ -1,15 +1,15 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 2.25rem;
   max-width: 75rem;
   margin: 0 auto;
-  padding: 2rem 1rem 3rem;
+  padding: 2.25rem clamp(0.75rem, 4vw, 1.25rem) 3.5rem;
 }
 
 .infoGrid {
   display: grid;
-  gap: 1.75rem;
+  gap: 1.85rem;
 }
 
 .greeting {
@@ -35,12 +35,12 @@
 .infoCard {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.35rem;
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 1.5rem;
+  border-radius: 1.65rem;
   box-shadow: 0 4px 24px -8px rgba(28, 36, 75, 0.08);
-  padding: 1.6rem 1.6rem 1.85rem;
+  padding: 1.75rem 1.8rem 1.95rem;
 }
 
 @media (min-width: 960px) {
@@ -359,16 +359,16 @@
 .packages {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
 .packageLink {
   display: block;
   width: 100%;
   border: 2px solid #e5e7eb;
-  border-radius: 1rem;
+  border-radius: 1.1rem;
   background: #ffffff;
-  padding: 1.5rem;
+  padding: 1.65rem;
   text-decoration: none;
   color: inherit;
   box-shadow: 0 2px 8px -4px rgba(28, 36, 75, 0.1);
@@ -557,4 +557,66 @@
   border-color: #1c244b;
   color: #1c244b;
   transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .container {
+    gap: 1.8rem;
+    padding: 1.75rem clamp(0.55rem, 5vw, 0.9rem) 4.2rem;
+  }
+
+  .infoGrid {
+    gap: 1.35rem;
+  }
+
+  .infoCard {
+    padding: 1.5rem 1.45rem 1.8rem;
+    border-radius: 1.45rem;
+    gap: 1.2rem;
+  }
+
+  .packageIcon {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 1.15rem;
+  }
+
+  .packageTitle {
+    font-size: 1.6rem;
+  }
+
+  .packages {
+    gap: 0.85rem;
+  }
+
+  .packageLink {
+    padding: 1.4rem;
+  }
+
+  .packageLinkContent {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .packageLinkContent {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .packageLinkPriceWrap {
+    align-items: flex-start;
+  }
+
+  .packageLinkArrow {
+    display: none;
+  }
+
+  .statsGrid {
+    gap: 0.65rem;
+  }
+
+  .statCard {
+    padding: 0.8rem;
+  }
 }

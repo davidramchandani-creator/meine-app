@@ -198,6 +198,47 @@
   gap: 0.5rem;
 }
 
+@media (max-width: 640px) {
+  .container {
+    gap: 1.75rem;
+  }
+
+  .list {
+    gap: 1.1rem;
+  }
+
+  .item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    border-radius: 1.35rem;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .lessonInfo {
+    gap: 0.45rem;
+  }
+
+  .actionsWrapper {
+    align-items: stretch;
+    gap: 0.7rem;
+  }
+
+  .actionButton,
+  .actionButtonSecondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pendingInfo {
+    text-align: center;
+  }
+
+  .inlineForm {
+    width: 100%;
+  }
+}
+
 .inlinePrimary,
 .inlineSecondary {
   border-radius: var(--radius-sm);
